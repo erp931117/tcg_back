@@ -25,8 +25,8 @@ class WorkerRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|max:70',
-            'last_name' => 'required|max:70',
+            'name' => 'required|max:70|alpha',
+            'last_name' => 'required|max:70|alpha',
             'dni' => 'required|max:25',
             'birthday' => 'required|max:20',
             'photo' => 'required|image|max:2048',

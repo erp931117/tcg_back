@@ -17,7 +17,7 @@ class CreateWorkersTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('last_name');
-            $table->string('dni');
+            $table->string('dni')->unique();
             $table->date('birthday');
             $table->string('photo');
             $table->unsignedBigInteger('user_id')->unique();

@@ -39,40 +39,38 @@ class WorkerController extends Controller
     public function store(WorkerRequest $request)
     {
         $request->validated();
-        $last_name=$request->input('last_name');
-        $last_name_for_email=str_replace(" ","",$last_name);
-        $last_name_for_email=$this->remove_accents($last_name_for_email);
+        $name=$this->remove_accents($request->input('name'));
+        $name=str_replace(" ","",$name);
+        $last_name=$this->remove_accents($request->input('last_name'));
+        $last_name=str_replace(" ","",$last_name);
         $emailBeforeSave='';
         $letter='';
-        for($i=0;$i<strlen($last_name_for_email);$i++){
-            $letter.=$last_name_for_email[$i];
-            $emailBeforeSave=$request->input('name').$letter.'@test.com';
+        for($i=0;$i<strlen($last_name);$i++){
+            $letter.=$last_name[$i];
+            $emailBeforeSave=strtolower($name.$letter.'@test.com');
             $userVerif=User::where('email',$emailBeforeSave)->first();
             if (!isset($userVerif)) {
-               break;
-           }             
-       } 
-
-       try {
-           $user = User::create([
+             break;
+         }             
+     } 
+     try {
+         $user = User::create([
             'name' => $request->input('name'),
-            'last_name'=>$last_name,
-            'email'=>strtolower($emailBeforeSave),
+            'last_name'=>$request->input('last_name'),
+            'email'=>$emailBeforeSave,
             'password'=>Hash::make($request->input('dni'))
         ]);
-           $url_image = $this->upload($request->file('photo'));
-
-           $user->worker()->create([
-             'name' => $request->input('name'),
-             'last_name'=>$last_name,
-             'dni'=>$request->input('dni'),
-             'birthday'=>$request->input('birthday'),
-             'photo'=>$url_image,
-         ]);
-
-           $user->worker->jobs()->sync($request->input('jobs'));
-           return response()->json(['message' => 'Worker create succesfully'], 201);
-       } catch (Exception $e) {
+         $url_image = $this->upload($request->file('photo'));
+         $user->worker()->create([
+           'name' => $request->input('name'),
+           'last_name'=>$last_name,
+           'dni'=>$request->input('dni'),
+           'birthday'=>$request->input('birthday'),
+           'photo'=>$url_image,
+       ]);
+         $user->worker->jobs()->sync($request->input('jobs'));
+         return response()->json(['message' => 'Worker create succesfully'], 201);
+     } catch (Exception $e) {
         return response()->json(['message' => $e], 500);
     }
 
@@ -83,7 +81,6 @@ private function upload($image)
 {
     $path_info = pathinfo($image->getClientOriginalName());
     $post_path = 'images/workers';
-
     $rename = uniqid() . '.' . $path_info['extension'];
     $image->move(public_path() . "/$post_path", $rename);
     return "$post_path/$rename";
@@ -167,9 +164,6 @@ private function upload($image)
     }
 
     function remove_accents($cadena){
-
-        $cadena = utf8_encode($cadena);
-
         $cadena = str_replace(
             array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä'),
             array('a', 'a', 'a', 'a', 'a', 'A', 'A', 'A', 'A'),
