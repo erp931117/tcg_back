@@ -21,5 +21,6 @@ class DatabaseSeeder extends Seeder
     		'email'=>'jonh@test.com',
     		'password'=>Hash::make('123')
     	]);
+    	$this->call(JobSeeder::class);
     }
 }
