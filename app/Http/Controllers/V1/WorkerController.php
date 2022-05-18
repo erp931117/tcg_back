@@ -40,38 +40,39 @@ class WorkerController extends Controller
     {
         $request->validated();
         $last_name=$request->input('last_name');
+        $last_name_for_email=str_replace(" ","",$last_name);
+        $last_name_for_email=$this->remove_accents($last_name_for_email);
         $emailBeforeSave='';
         $letter='';
-        for($i=0;$i<strlen($last_name);$i++){
-            $letter.=$last_name[$i];
-            $email=$request->input('name').$letter.'@test.com';
-            $userVerif=User::where('email',$email)->first();
+        for($i=0;$i<strlen($last_name_for_email);$i++){
+            $letter.=$last_name_for_email[$i];
+            $emailBeforeSave=$request->input('name').$letter.'@test.com';
+            $userVerif=User::where('email',$emailBeforeSave)->first();
             if (!isset($userVerif)) {
-             $emailBeforeSave=$email;
-             break;
-         }             
-     } 
+               break;
+           }             
+       } 
 
-     try {
-         $user = User::create([
+       try {
+           $user = User::create([
             'name' => $request->input('name'),
             'last_name'=>$last_name,
             'email'=>strtolower($emailBeforeSave),
             'password'=>Hash::make($request->input('dni'))
         ]);
-         $url_image = $this->upload($request->file('photo'));
+           $url_image = $this->upload($request->file('photo'));
 
-         $user->worker()->create([
-           'name' => $request->input('name'),
-           'last_name'=>$last_name,
-           'dni'=>$request->input('dni'),
-           'birthday'=>$request->input('birthday'),
-           'photo'=>$url_image,
-       ]);
+           $user->worker()->create([
+             'name' => $request->input('name'),
+             'last_name'=>$last_name,
+             'dni'=>$request->input('dni'),
+             'birthday'=>$request->input('birthday'),
+             'photo'=>$url_image,
+         ]);
 
-         $user->worker->jobs()->sync($request->input('jobs'));
-         return response()->json(['message' => 'Worker create succesfully'], 201);
-     } catch (Exception $e) {
+           $user->worker->jobs()->sync($request->input('jobs'));
+           return response()->json(['message' => 'Worker create succesfully'], 201);
+       } catch (Exception $e) {
         return response()->json(['message' => $e], 500);
     }
 
@@ -163,5 +164,44 @@ private function upload($image)
         }
 
         return response()->json(['message' => 'Error to update post'], 500);
+    }
+
+    function remove_accents($cadena){
+
+        $cadena = utf8_encode($cadena);
+
+        $cadena = str_replace(
+            array('á', 'à', 'ä', 'â', 'ª', 'Á', 'À', 'Â', 'Ä'),
+            array('a', 'a', 'a', 'a', 'a', 'A', 'A', 'A', 'A'),
+            $cadena
+        );
+
+        $cadena = str_replace(
+            array('é', 'è', 'ë', 'ê', 'É', 'È', 'Ê', 'Ë'),
+            array('e', 'e', 'e', 'e', 'E', 'E', 'E', 'E'),
+            $cadena );
+
+        $cadena = str_replace(
+            array('í', 'ì', 'ï', 'î', 'Í', 'Ì', 'Ï', 'Î'),
+            array('i', 'i', 'i', 'i', 'I', 'I', 'I', 'I'),
+            $cadena );
+
+        $cadena = str_replace(
+            array('ó', 'ò', 'ö', 'ô', 'Ó', 'Ò', 'Ö', 'Ô'),
+            array('o', 'o', 'o', 'o', 'O', 'O', 'O', 'O'),
+            $cadena );
+
+        $cadena = str_replace(
+            array('ú', 'ù', 'ü', 'û', 'Ú', 'Ù', 'Û', 'Ü'),
+            array('u', 'u', 'u', 'u', 'U', 'U', 'U', 'U'),
+            $cadena );
+
+        $cadena = str_replace(
+            array('ñ', 'Ñ', 'ç', 'Ç'),
+            array('n', 'N', 'c', 'C'),
+            $cadena
+        );
+
+        return $cadena;
     }
 }
